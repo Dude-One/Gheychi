@@ -5,8 +5,8 @@
 
 next one is the write concurrency or race condition : [IF YOU DONT READ THE REST DOSENT MATTER JUST PLZ READ THIS ONE MULTIPLE TIMES]
 
-- as the dude asked me in the interview how do you want to fix race condition i did here using transactional db management how i have 2 queries that write on db one update one insert 
-- first thing first i create the short key using id and base 62 encoder so id must be unique per each record and the most important thing is i dont generate the id in the code that will fix the race condition how read the next line
+- as the dude asked me in the interview how do you want to fix race condition , i did here using transactional db management how ,i have 2 queries that write on db ,one update ,one insert 
+- first thing first i create the short key using id and base 62 encoder , so id must be unique per each record and the most important thing is i dont generate the id in the code , that will fix the race condition how read the next line
 - when i add each record to db i return the id of it to the code the point of this is im using .begin() transaction method of db SQL will ensure each id is unique base on im using this method and im returning this to the logic to continue 
 - then i will create the shorten url base on the id we got from the insert transactional method and use it with base 62 encoder to create a shorten url and then update the record in db to have the shorten url in there 
 - the key point i found when i was coding this is i cant put logic on shorten url to check if i already have this in my db or not reason was i am using a query to add the record and an other one to update it and if this code scales up and other instance might exactly get the record between the update and insert
