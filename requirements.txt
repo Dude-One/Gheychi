@@ -6,3 +6,4 @@ httpx
 sqlalchemy
 pymysql
 cryptography
+requests
