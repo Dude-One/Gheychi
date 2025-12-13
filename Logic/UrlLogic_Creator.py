@@ -7,7 +7,7 @@ from Models.UrlDto import ResponseDto
 class UrlLogic:
     def __init__(self):
         self.DAL = UrlRepository()
-        self.base_url = "http://localhost:8000/api/"
+        self.base_url = "http://localhost:8080/api/"
 
     def shorten_the_url_method(self, long_url):
         url_hash = HashGen(long_url)
