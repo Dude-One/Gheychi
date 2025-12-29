@@ -6,6 +6,10 @@ from Logic.UrlLogic_Creator import UrlLogic
 router = APIRouter()
 logic = UrlLogic()
 
+@router.get("/health")
+async def health():
+    return {"status": "ok"}
+
 @router.post("/shorten", response_model=ResponseDto)
 async def shorten_the_url(request: RequestDto):
     try:

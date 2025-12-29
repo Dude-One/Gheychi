@@ -20,25 +20,37 @@ class UrlLogic:
         self.existing = self.DAL.get_by_url_hash(url_hash)
         if self.existing:
             short_code = self.existing['short_code']
-            return ResponseDto(
-                id=self.existing["id"],
-                short_code=short_code,
-                short_url=self.base_url + short_code,
-                long_url=self.existing["long_url"]
-            )
+            if short_code != None :
+                return ResponseDto(
+                    id=self.existing["id"],
+                    short_code=short_code,
+                    short_url=self.base_url + short_code,
+                    long_url=self.existing["long_url"]
+                )
         else:
             new_id = self.DAL.insert_new_url(long_url, url_hash)
             short_code = encode_base62(new_id)
             if len(short_code) > 5:
                 raise ValueError("Short code exceeded max length of 5 characters")
-            self.DAL.update_short_code(new_id, short_code)
-            record = self.DAL.get_by_id(new_id)
-            return ResponseDto(
-                id=record["id"],
-                short_code=record["short_code"],
-                short_url=self.base_url + record["short_code"],
-                long_url=record["long_url"]
-            )
+            UpdateStatus = self.DAL.update_short_code(new_id, short_code)
+            if UpdateStatus == None :
+                record = self.DAL.get_by_id(new_id)
+                if record :
+                    return ResponseDto(
+                        id=record["id"],
+                        short_code=record["short_code"],
+                        short_url=self.base_url + record["short_code"],
+                        long_url=record["long_url"]
+                    )
+                else :
+                    raise ValueError()
+            else :
+                return ResponseDto(
+                    id=UpdateStatus["id"],
+                    short_code=UpdateStatus["short_code"],
+                    short_url=self.base_url + UpdateStatus["short_code"],
+                    long_url=UpdateStatus["long_url"]
+                )
 
 
     def get_long_url(self, short_code):

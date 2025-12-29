@@ -3,7 +3,13 @@ from sqlalchemy.exc import IntegrityError
 
 class UrlRepository:
     def __init__(self, db_url="mysql+pymysql://user:password@db:3306/shortenurl"):
-        self.engine = create_engine(db_url, echo=False)
+        self.engine = create_engine(
+            db_url,
+            echo=False,
+            pool_size=10,
+            max_overflow=20,
+            pool_pre_ping=True,
+        )
         self.metadata = MetaData()
 
         self.urls = Table(
@@ -29,14 +35,23 @@ class UrlRepository:
                 result = conn.execute(stmt)
                 return result.inserted_primary_key[0]
             except IntegrityError:
-
-                existing = self.get_by_url_hash(url_hash)
-                return existing['id']
+                existing_stmt = select(self.urls.c.id).where(self.urls.c.url_hash == url_hash)
+                existing_id = conn.execute(existing_stmt).scalar()  # uses same conn
+                return existing_id
 
     def update_short_code(self, record_id, short_code):
-        stmt = update(self.urls).where(self.urls.c.id == record_id).values(short_code=short_code)
+        stmt = update(self.urls).where(self.urls.c.id == record_id,
+                                       self.urls.c.short_code.is_(None)).values(short_code=short_code)
         with self.engine.begin() as conn:
-            conn.execute(stmt)
+            try :
+                conn.execute(stmt)
+                record_stmt = select(self.urls).where(self.urls.c.id == record_id)
+                record = conn.execute(record_stmt).mappings().first()
+                return dict(record) if record else None
+            except IntegrityError:
+                existing_stmt = select(self.urls).where(self.urls.c.id == record_id)
+                existing_record = conn.execute(existing_stmt).mappings().first()
+                return dict(existing_record) if existing_record else None
 
     def get_by_id(self, record_id):
         stmt = select(self.urls).where(self.urls.c.id == record_id)
